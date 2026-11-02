@@ -20,6 +20,21 @@ from typing import Any, Dict, List, Optional, Tuple
 from engine import Account, BankRuleEngine, DoubleEntryLedger, Transaction
 
 
+def load_env_file():
+    """Loads key-value pairs from .env into os.environ if present."""
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if os.path.exists(env_path):
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ[k.strip()] = v.strip().strip("'\"")
+
+
+load_env_file()
+
+
 SYSTEM_PROMPT = """You are an adversarial red-teaming agent in an isolated financial simulation.
 Your goal is to test transaction monitoring boundaries by proposing synthetic payment sequences.
 You must output ONLY valid JSON matching this schema:
@@ -54,7 +69,7 @@ def call_llm(messages: List[Dict[str, str]]) -> Optional[str]:
         return None
 
     url = "https://openrouter.ai/api/v1/chat/completions" if "OPENROUTER_API_KEY" in os.environ else "https://api.openai.com/v1/chat/completions"
-    model = "meta-llama/llama-3.3-70b-instruct:free" if "OPENROUTER_API_KEY" in os.environ else "gpt-4o-mini"
+    model = "openrouter/auto" if "OPENROUTER_API_KEY" in os.environ else "gpt-4o-mini"
 
     payload = json.dumps({
         "model": model,
@@ -62,14 +77,13 @@ def call_llm(messages: List[Dict[str, str]]) -> Optional[str]:
         "temperature": 0.3,
     }).encode("utf-8")
 
-    req = urllib.request.Request(
-        url,
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        },
-    )
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+        "HTTP-Referer": "https://github.com/Charukhesh/BankShield",
+        "X-Title": "BankShield",
+    }
+    req = urllib.request.Request(url, data=payload, headers=headers)
 
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
@@ -126,7 +140,7 @@ def run_adversarial_loop(max_iterations: int = 3) -> Tuple[bool, Dict[str, Any],
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     for attempt in range(max_iterations):
-        print(f"\n[Iteration {attempt + 1}] Requesting candidate attack plan from Adversary...")
+        print(f"\n[Iteration {attempt + 1}] Requesting candidate attack plan from live LLM...", flush=True)
         
         # 1. Propose scenario
         raw_response = call_llm(messages)
@@ -138,11 +152,11 @@ def run_adversarial_loop(max_iterations: int = 3) -> Tuple[bool, Dict[str, Any],
                 pass
 
         if not candidate:
-            print("  -> Using simulated adversary mutation.")
+            print("  -> LLM response parsing fallback, using simulated adversary mutation.", flush=True)
             candidate = fallback_adversary_mutation(attempt)
 
-        print(f"  -> Scenario proposed: '{candidate.get('scenario_name')}'")
-        print(f"  -> Number of transfers: {len(candidate.get('transfers', []))}")
+        print(f"  -> Scenario proposed: '{candidate.get('scenario_name')}'", flush=True)
+        print(f"  -> Number of transfers: {len(candidate.get('transfers', []))}", flush=True)
 
         # 2. Setup fresh ledger and rule engine
         ledger = DoubleEntryLedger()
@@ -189,18 +203,19 @@ def run_adversarial_loop(max_iterations: int = 3) -> Tuple[bool, Dict[str, Any],
 
         if flagged_violations:
             rule_ids = list(set(v.rule_id for v in flagged_violations))
-            print(f"  [Result] FLAGGED by rules: {', '.join(rule_ids)}")
+            print(f"  [Result] FLAGGED by rules: {', '.join(rule_ids)}", flush=True)
             feedback = f"Your plan was flagged by the following rules: {', '.join(rule_ids)}. Mutate your amounts, counterparties, or timing delays to bypass these specific checks."
             messages.append({"role": "assistant", "content": json.dumps(candidate)})
             messages.append({"role": "user", "content": feedback})
         else:
-            print("  [Result] EVASION CONFIRMED: All transfers executed successfully with ZERO rule flags!")
-            print(f"  -> Successfully transferred funds without triggering monitoring thresholds.")
+            print("  [Result] EVASION CONFIRMED: All transfers executed successfully with ZERO rule flags!", flush=True)
+            print(f"  -> Successfully transferred funds without triggering monitoring thresholds.", flush=True)
             return True, candidate, []
 
-    print("\n[Result] Adversary exhausted iterations without evading rules.")
+    print("\n[Result] Adversary exhausted iterations without evading rules.", flush=True)
     return False, candidate, [v.rule_id for v in flagged_violations]
 
 
 if __name__ == "__main__":
     success, scenario, rules = run_adversarial_loop()
+
