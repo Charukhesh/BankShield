@@ -1,35 +1,72 @@
 # BankShield
 
-BankShield is a testing environment for bank transaction monitoring systems. It checks where rule-based and supervised compliance systems fail when tested against multi-step evasion techniques.
+BankShield is an adversarial stress-testing environment for bank transaction monitoring systems. It measures where rule-based and supervised compliance systems fail when tested against multi-step evasion techniques.
 
 The repository accompanies the technical brief submitted for the engineering assessment.
 
-## What this repository contains
+## Repository contents
 
 - `engine.py`: A deterministic Python engine implementing Bank Secrecy Act and anti-money laundering rule checks alongside a double-entry balance ledger.
+- `adversary.py`: An exploratory red-team agent that generates synthetic transaction sequences and mutates them in response to rule engine feedback until it finds an unflagged route.
+- `auditor.py`: A blue-team compliance auditor that maps confirmed gaps to FinCEN and FATF guidelines, generating structured remediation proposals for human review.
 - `test_scenarios.py`: A test suite running ten concrete scenarios (benign transactions, standard triggers, ledger invariant checks, and three multi-step evasion tests).
 - `report.tex`: The submission brief, formatted to four pages with citations and architecture diagrams.
 
-## How to run the benchmark
+## How to run the system
 
-This project runs on standard Python 3.8+ with no third-party package dependencies.
+This project runs on standard Python 3.8+ with no required third-party dependencies.
 
-Clone the repository and run the test suite:
-
+### 1. Run the benchmark test suite (10 scenarios)
 ```bash
-git clone https://github.com/Charukhesh/BankShield.git
-cd BankShield
 python test_scenarios.py
+```
+
+### 2. Run the adversarial red-team search loop
+```bash
+python adversary.py
+```
+*Note on LLM API keys:* To run `adversary.py` against a live language model, set your API key:
+```bash
+# Optional: Uses OpenRouter free models or OpenAI
+export OPENROUTER_API_KEY="your-key-here"
+# or
+export OPENAI_API_KEY="your-key-here"
+```
+If no API key is provided, the script runs with a built-in adversarial mutation generator, demonstrating the exact feedback loop without external network dependencies.
+
+### 3. Generate a compliance audit finding
+```bash
+python auditor.py
 ```
 
 ## How the architecture works
 
 Bank compliance systems require deterministic, auditable decisions. BankShield separates probabilistic scenario generation from mathematical rule verification:
 
+```
+LLM Adversary Agent (adversary.py)
+        │
+        │ Proposed transaction plan (JSON)
+        ▼
+Double-Entry Ledger (engine.py)
+        │ Balance invariant checks
+        ▼
+Bank Rule Engine (engine.py)
+        ├── 31 CFR 1010.311 CTR threshold ($10,000)
+        ├── Anti-structuring rolling window check (48 hours)
+        ├── High-frequency velocity burst check
+        └── Circular graph route detection
+        │
+        ▼
+Evaluation Outcome
+        ├── FLAGGED → Return feedback to adversary to mutate
+        └── EVADED  → Send trace to Compliance Auditor (auditor.py)
+```
+
 1. **Adversarial generation**: Language model agents suggest transaction routes, timing intervals, and amount distributions.
 2. **Double-entry ledger**: Verifies that transactions preserve basic accounting laws ($Assets = Liabilities + Equity$) and prevents accounts from spending balances they do not hold.
 3. **Deterministic rule evaluation**: Runs hard-coded checks for Currency Transaction Report limits ($10,000 threshold), multi-transfer structuring heuristics, velocity bursts, and circular payments.
-4. **Audit reporting**: Confirmed gaps are recorded in structured JSON format with references to relevant statutory rules and regulatory advisories.
+4. **Audit reporting**: Confirmed gaps are recorded in structured format with references to relevant statutory rules and regulatory advisories.
 
 ## The 10 test scenarios
 

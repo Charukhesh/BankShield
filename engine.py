@@ -190,3 +190,4 @@ class BankRuleEngine:
                 queue.extend(edges.get(node, []))
 
         return False
+
