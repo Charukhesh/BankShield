@@ -64,16 +64,13 @@ No language model determines whether a transaction broke a compliance rule. The 
   - Drafts concrete rule patch diffs and notes false-positive trade-offs for review by the bank's model risk committee.
 - Primary sources: FATF Recommendation 20 (Suspicious Transaction Reporting) and FinCEN Advisory FIN-2021-A003.
 
-### `test_scenarios.py` (Deterministic evaluation suite)
-- Responsibility: Benchmarks the rule engine across distinct test categories without external API requirements.
-- Scope of testing:
-  - Baseline transactions: Everyday personal payments and routine commercial invoices.
-  - Classical triggers: Direct single-wire threshold breaches, basic structuring, velocity bursts, and circular funds flow.
-  - Adversarial evasion patterns: Window boundary delays, multi-account intermediary fan-out, and sub-threshold micro-transactions.
-  - Invariant enforcement: Transactions that violate double-entry conservation laws.
+### `auditor_report.md` (Vulnerability audit report)
+- Responsibility: Detailed compliance and vulnerability audit document detailing the five systemic loopholes in transaction monitoring systems, mathematical metrics, statutory mappings (BSA, FinCEN, FATF), and false-positive trade-off analyses.
 
-### `report.tex` (Submission brief)
-- The formal technical brief formatted to four pages for the assessment, detailing the problem statement, systems architecture, risk matrix, and domain analysis.
+### `visualizer.py` and `visualizer.html` (Interactive decision visualizer)
+- Responsibility: Standalone browser visualizer that renders multi-hop payment topologies (originator, mules, receiver) and provides a compliance policy simulator. Allows human officers to toggle candidate rule patches and observe how evasions transition to intercepted status.
+
+### `test_scenarios.py` (Deterministic evaluation suite)
 
 ## Running the system
 
@@ -92,6 +89,10 @@ python adversary.py
 
 # 3. Generate the compliance audit report
 python auditor.py
+
+# 4. Generate and open the interactive visualizer
+python visualizer.py
+# Open visualizer.html in any browser
 ```
 
 ### Optional API configuration

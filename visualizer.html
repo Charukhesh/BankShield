@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BankShield Compliance Visualizer</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --primary: #3b82f6;
+    --danger: #ef4444;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --purple: #8b5cf6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; color: #fff; }
+  .header p { font-size: 14px; color: var(--muted); }
+  .badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .scenario-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    background: #334155;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: #475569; }
+  .btn.active {
+    background: var(--primary);
+    font-weight: 600;
+  }
+  .canvas-container {
+    background: #090d16;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    height: 420px;
+    position: relative;
+    overflow: hidden;
+  }
+  svg { width: 100%; height: 100%; }
+  .node circle {
+    stroke-width: 3px;
+    transition: all 0.3s;
+  }
+  .node text {
+    fill: #fff;
+    font-size: 12px;
+    text-anchor: middle;
+    font-weight: 600;
+  }
+  .node-subtext {
+    fill: var(--muted);
+    font-size: 10px;
+    text-anchor: middle;
+  }
+  .edge {
+    stroke-width: 2.5;
+    transition: all 0.4s;
+    marker-end: url(#arrow);
+  }
+  .edge.cleared { stroke: var(--success); }
+  .edge.flagged { stroke: var(--danger); stroke-dasharray: 6,4; }
+  .edge-label {
+    fill: #e2e8f0;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .toggle-group {
+    background: #0b1120;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  .toggle-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .toggle-item:last-child { border-bottom: none; }
+  .toggle-label { font-size: 13px; font-weight: 500; }
+  .toggle-desc { font-size: 11px; color: var(--muted); }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #475569;
+    transition: .3s;
+    border-radius: 24px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+  }
+  input:checked + .slider { background-color: var(--primary); }
+  input:checked + .slider:before { transform: translateX(20px); }
+  .status-box {
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .status-box.evaded {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid var(--success);
+    color: var(--success);
+  }
+  .status-box.intercepted {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+  }
+  .log-table {
+    width: 100%;
+    font-size: 12px;
+    border-collapse: collapse;
+    margin-top: 12px;
+  }
+  .log-table th, .log-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .log-table th { color: var(--muted); font-weight: 600; }
+  .tag {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .tag-evaded { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+  .tag-flagged { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>BankShield Interactive Compliance Visualizer</h1>
+    <p>Adversarial Transaction Graph Inspection & Human Remediation Decision Sandbox</p>
+  </div>
+  <div class="badge">Model Risk Governance Tool (SR 11-7)</div>
+</div>
+
+<div class="scenario-buttons">
+  <button class="btn active" onclick="loadScenario('fan_out')">Scenario A: Fan-Out Mule Layering (Case 8)</button>
+  <button class="btn" onclick="loadScenario('window_delay')">Scenario B: 52-Hour Window Cliff (Case 7)</button>
+  <button class="btn" onclick="loadScenario('crude_struct')">Scenario C: Crude 24-Hour Structuring (Case 3)</button>
+</div>
+
+<div class="grid">
+  <!-- Left column: Interactive Canvas -->
+  <div class="card">
+    <div class="card-title">
+      <span>Payment Topology Graph</span>
+      <span id="canvas-subtitle" style="font-size: 13px; color: var(--muted);">Evaluating against standard rules</span>
+    </div>
+    <div class="canvas-container">
+      <svg id="graph-svg">
+        <defs>
+          <marker id="arrow-green" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+          </marker>
+          <marker id="arrow-red" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+          </marker>
+        </defs>
+        <g id="edges-layer"></g>
+        <g id="nodes-layer"></g>
+      </svg>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <h3 style="font-size: 14px; margin-bottom: 8px;">Transaction Timeline & Execution Trace</h3>
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Tx ID</th>
+            <th>Sender</th>
+            <th>Receiver</th>
+            <th>Amount</th>
+            <th>Timeline (Elapsed)</th>
+            <th>Result Status</th>
+          </tr>
+        </thead>
+        <tbody id="timeline-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right column: Controls & Decision Making -->
+  <div class="card">
+    <div class="card-title">Compliance Decision Matrix</div>
+
+    <div id="status-card" class="status-box evaded">
+      <div>
+        <div id="status-title" style="font-weight: 700; font-size: 14px;">EVASION CONFIRMED (Blind Spot)</div>
+        <div id="status-desc" style="font-size: 12px; margin-top: 2px;">Transactions bypassed current bank monitoring thresholds with zero alerts.</div>
+      </div>
+    </div>
+
+    <div class="toggle-group">
+      <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 10px;">
+        Simulate Compliance Policy Patches
+      </div>
+      
+      <div class="toggle-item">
+        <div>
+          <div class="toggle-label">Extend Window (48h → 72h)</div>
+          <div class="toggle-desc">Expands rolling aggregation for smurfing</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="patch-window" onchange="recalculate()">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-item">
+        <div>
+          <div class="toggle-label">2-Hop Beneficiary Clustering</div>
+          <div class="toggle-desc">Aggregates funds across common intermediaries</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="patch-hop" onchange="recalculate()">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-item">
+        <div>
+          <div class="toggle-label">Lower Floor Filter ($2k → $500)</div>
+          <div class="toggle-desc">Catches sub-threshold micro-splits</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="patch-micro" onchange="recalculate()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div style="background: #0b1120; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 12px;">
+      <div style="font-weight: 600; color: #fff; margin-bottom: 6px;">Statutory Citation & Authority:</div>
+      <div style="color: var(--muted); line-height: 1.4;" id="citation-box">
+        31 U.S.C. 5318(g) / 31 CFR 1010.100(xx). FinCEN Advisory FIN-2021-A003 on structuring across coordinated counterparties.
+      </div>
+      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 11px; color: #cbd5e1;">
+        <strong>Trade-off analysis:</strong> <span id="tradeoff-box">Enabling 2-hop checks neutralizes multi-account layering with an estimated 3.8% increase in false-positive review workload.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCENARIOS = {
+  fan_out: {
+    name: "Fan-Out Mule Layering (Case 8)",
+    citation: "31 U.S.C. 5318(g) / FinCEN FIN-2021-A003 (Mule network layering)",
+    tradeoff: "Enabling 2-hop checks neutralizes multi-account layering with an estimated 3.8% increase in false-positive review workload.",
+    nodes: [
+      { id: "ACC_CHARLIE", label: "Charlie (Sender)", role: "origin", x: 80, y: 210, color: "#f59e0b" },
+      { id: "ACC_MULE_1", label: "Mule 1", role: "mule", x: 260, y: 120, color: "#8b5cf6" },
+      { id: "ACC_MULE_2", label: "Mule 2", role: "mule", x: 260, y: 300, color: "#8b5cf6" },
+      { id: "ACC_DAVE", label: "Dave (Beneficiary)", role: "target", x: 440, y: 210, color: "#3b82f6" }
+    ],
+    transfers: [
+      { id: "TX_1", from: "ACC_CHARLIE", to: "ACC_MULE_1", amount: 4500, time: "T+0h", patchedBy: [] },
+      { id: "TX_2", from: "ACC_CHARLIE", to: "ACC_MULE_2", amount: 4500, time: "T+1h", patchedBy: [] },
+      { id: "TX_3", from: "ACC_MULE_1", to: "ACC_DAVE", amount: 4400, time: "T+5h", patchedBy: ["hop"] },
+      { id: "TX_4", from: "ACC_MULE_2", to: "ACC_DAVE", amount: 4400, time: "T+6h", patchedBy: ["hop"] }
+    ]
+  },
+  window_delay: {
+    name: "52-Hour Window Cliff Evasion (Case 7)",
+    citation: "31 CFR 1010.100(xx) Anti-Structuring Provisions",
+    tradeoff: "Expanding rolling window to 72h captures delayed smurfing without affecting standard intraday merchant sweeps.",
+    nodes: [
+      { id: "ACC_BOB", label: "Bob (Sender)", role: "origin", x: 120, y: 210, color: "#f59e0b" },
+      { id: "ACC_DAVE", label: "Dave (Beneficiary)", role: "target", x: 400, y: 210, color: "#3b82f6" }
+    ],
+    transfers: [
+      { id: "TX_1", from: "ACC_BOB", to: "ACC_DAVE", amount: 4900, time: "Day 1, 09:00 (T+0h)", patchedBy: [] },
+      { id: "TX_2", from: "ACC_BOB", to: "ACC_DAVE", amount: 5200, time: "Day 3, 13:00 (T+52h)", patchedBy: ["window"] }
+    ]
+  },
+  crude_struct: {
+    name: "Crude 24-Hour Structuring (Case 3)",
+    citation: "31 CFR 1010.311 (CTR) and Standard 48h Smurfing Rules",
+    tradeoff: "Caught automatically by current baseline rules without requiring any policy changes.",
+    nodes: [
+      { id: "ACC_CHARLIE", label: "Charlie (Sender)", role: "origin", x: 120, y: 210, color: "#f59e0b" },
+      { id: "ACC_DAVE", label: "Dave (Beneficiary)", role: "target", x: 400, y: 210, color: "#3b82f6" }
+    ],
+    transfers: [
+      { id: "TX_1", from: "ACC_CHARLIE", to: "ACC_DAVE", amount: 3400, time: "Day 1, 09:00", patchedBy: ["always_flag"] },
+      { id: "TX_2", from: "ACC_CHARLIE", to: "ACC_DAVE", amount: 3400, time: "Day 1, 17:00", patchedBy: ["always_flag"] },
+      { id: "TX_3", from: "ACC_CHARLIE", to: "ACC_DAVE", amount: 3400, time: "Day 2, 03:00", patchedBy: ["always_flag"] }
+    ]
+  }
+};
+
+let currentScenario = "fan_out";
+
+function loadScenario(key) {
+  currentScenario = key;
+  document.querySelectorAll(".scenario-buttons .btn").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+  recalculate();
+}
+
+function recalculate() {
+  const sc = SCENARIOS[currentScenario];
+  const patchWindow = document.getElementById("patch-window").checked;
+  const patchHop = document.getElementById("patch-hop").checked;
+  const patchMicro = document.getElementById("patch-micro").checked;
+
+  document.getElementById("citation-box").innerText = sc.citation;
+  document.getElementById("tradeoff-box").innerText = sc.tradeoff;
+
+  let anyIntercepted = false;
+  const evaluatedTransfers = sc.transfers.map(t => {
+    let flagged = false;
+    if (t.patchedBy.includes("always_flag")) flagged = true;
+    if (patchWindow && t.patchedBy.includes("window")) flagged = true;
+    if (patchHop && t.patchedBy.includes("hop")) flagged = true;
+    if (patchMicro && t.patchedBy.includes("micro")) flagged = true;
+    if (flagged) anyIntercepted = true;
+    return { ...t, flagged };
+  });
+
+  // Update Status banner
+  const statusBox = document.getElementById("status-card");
+  const statusTitle = document.getElementById("status-title");
+  const statusDesc = document.getElementById("status-desc");
+
+  if (anyIntercepted) {
+    statusBox.className = "status-box intercepted";
+    statusTitle.innerText = "INTERCEPTED BY COMPLIANCE CONTROLS";
+    statusDesc.innerText = "Transaction pattern was successfully detected and flagged for review under the simulated policy.";
+  } else {
+    statusBox.className = "status-box evaded";
+    statusTitle.innerText = "EVASION CONFIRMED (Blind Spot Active)";
+    statusDesc.innerText = "Current rules allowed the full sum to clear without tripping alert thresholds.";
+  }
+
+  // Render SVG Graph
+  renderGraph(sc.nodes, evaluatedTransfers);
+
+  // Render Table
+  const tbody = document.getElementById("timeline-body");
+  tbody.innerHTML = evaluatedTransfers.map(t => `
+    <tr>
+      <td><code>${t.id}</code></td>
+      <td>${t.from}</td>
+      <td>${t.to}</td>
+      <td>$${t.amount.toLocaleString()}</td>
+      <td>${t.time}</td>
+      <td>
+        <span class="tag ${t.flagged ? 'tag-flagged' : 'tag-evaded'}">
+          ${t.flagged ? 'FLAGGED (Alert Generated)' : 'CLEARED (Unflagged)'}
+        </span>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function renderGraph(nodes, transfers) {
+  const nodesLayer = document.getElementById("nodes-layer");
+  const edgesLayer = document.getElementById("edges-layer");
+  nodesLayer.innerHTML = "";
+  edgesLayer.innerHTML = "";
+
+  const nodeMap = {};
+  nodes.forEach(n => nodeMap[n.id] = n);
+
+  // Draw Edges
+  transfers.forEach((t, i) => {
+    const s = nodeMap[t.from];
+    const d = nodeMap[t.to];
+    if (!s || !d) return;
+
+    // Slight curvature offset for multiple edges
+    const dx = d.x - s.x;
+    const dy = d.y - s.y;
+    const mx = (s.x + d.x) / 2;
+    const my = (s.y + d.y) / 2 - (i % 2 === 0 ? 15 : -15);
+
+    const pathData = `M ${s.x} ${s.y} Q ${mx} ${my} ${d.x} ${d.y}`;
+    const strokeColor = t.flagged ? "#ef4444" : "#10b981";
+    const marker = t.flagged ? "url(#arrow-red)" : "url(#arrow-green)";
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", pathData);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", strokeColor);
+    path.setAttribute("stroke-width", "2.5");
+    if (t.flagged) path.setAttribute("stroke-dasharray", "6,4");
+    path.setAttribute("marker-end", marker);
+    edgesLayer.appendChild(path);
+
+    // Label
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", mx);
+    text.setAttribute("y", my - 6);
+    text.setAttribute("class", "edge-label");
+    text.setAttribute("text-anchor", "middle");
+    text.textContent = `$${t.amount.toLocaleString()} (${t.time})`;
+    edgesLayer.appendChild(text);
+  });
+
+  // Draw Nodes
+  nodes.forEach(n => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("class", "node");
+
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", n.x);
+    circle.setAttribute("cy", n.y);
+    circle.setAttribute("r", 24);
+    circle.setAttribute("fill", "#1e293b");
+    circle.setAttribute("stroke", n.color);
+    circle.setAttribute("stroke-width", 3);
+    g.appendChild(circle);
+
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", n.x);
+    text.setAttribute("y", n.y + 4);
+    text.textContent = n.id.replace("ACC_", "");
+    g.appendChild(text);
+
+    const sub = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    sub.setAttribute("x", n.x);
+    sub.setAttribute("y", n.y + 42);
+    sub.setAttribute("class", "node-subtext");
+    sub.textContent = n.label;
+    g.appendChild(sub);
+
+    nodesLayer.appendChild(g);
+  });
+}
+
+window.onload = recalculate;
+</script>
+</body>
+</html>
