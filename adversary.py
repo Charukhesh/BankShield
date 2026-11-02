@@ -62,8 +62,37 @@ Do not output markdown code blocks, just raw JSON.
 """
 
 
+def call_gemini(prompt_text: str) -> Optional[str]:
+    """Calls Google Gemini API using GEMINI_API_KEY."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return None
+
+    candidate_models = ["gemini-flash-lite-latest", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-pro"]
+    for model in candidate_models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        payload = json.dumps({
+            "contents": [{"parts": [{"text": prompt_text}]}],
+            "generationConfig": {"temperature": 0.2}
+        }).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                return data["candidates"][0]["content"]["parts"][0]["text"]
+        except Exception:
+            continue
+    return None
+
+
 def call_llm(messages: List[Dict[str, str]]) -> Optional[str]:
-    """Calls OpenRouter or OpenAI API if OPENROUTER_API_KEY or OPENAI_API_KEY is present."""
+    """Calls Gemini API, OpenRouter, or OpenAI API."""
+    if os.getenv("GEMINI_API_KEY"):
+        combined_prompt = "\n\n".join([f"{m['role'].upper()}: {m['content']}" for m in messages])
+        res = call_gemini(combined_prompt)
+        if res:
+            return res
+
     api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
         return None
