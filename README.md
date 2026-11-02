@@ -56,6 +56,15 @@ No language model determines whether a transaction broke a compliance rule. The 
   - Interfaces with live models through OpenRouter or OpenAI APIs, with a local fallback generator for zero-dependency execution.
 - Primary sources: Dennis Heijmans et al. (2026) on learned adversarial graph perturbations, and IBM AMLSim (NeurIPS 2023).
 
+### `swarm.py` (Concurrent multi-agent stress testing)
+- Responsibility: Orchestrates multiple specialized agents running concurrently via `ThreadPoolExecutor` against the shared thread-safe banking environment.
+- Capabilities:
+  - Agent Chronos (Temporal Boundary Pacer): Staggers transactions beyond the 48-hour window.
+  - Agent Hydra (Multi-Hop Mule Ring): Fans out funds across intermediary accounts and reconverges.
+  - Agent Phantom (Micro-Jitter Smurfer): Disburses sub-threshold randomized amounts ($1,800 to $2,400).
+  - Agent MarketNoise (Benign Traffic Generator): Concurrently injects commercial payroll and retail merchant volume.
+  - Enforces thread-safe balance transitions and validates double-entry conservation invariants across all concurrent worker threads.
+
 ### `auditor.py` (Blue-team compliance reporter)
 - Responsibility: Translates confirmed evasion paths into actionable regulatory reports for human risk officers.
 - Capabilities:
@@ -87,10 +96,13 @@ python test_scenarios.py
 # 2. Run the adversarial red-team search loop
 python adversary.py
 
-# 3. Generate the compliance audit report
+# 3. Run the concurrent multi-agent swarm stress test
+python swarm.py
+
+# 4. Generate the compliance audit report
 python auditor.py
 
-# 4. Generate and open the interactive visualizer
+# 5. Generate and open the interactive visualizer
 python visualizer.py
 # Open visualizer.html in any browser
 ```
