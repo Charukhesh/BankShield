@@ -7,5 +7,6 @@ __pycache__/
 *.fls
 *.fdb_latexmk
 gpt_response.md
+thoughts.md
 .env
 *.env
