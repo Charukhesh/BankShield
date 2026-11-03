@@ -10,6 +10,18 @@
 
 ---
 
+## Demo Walkthrough (20 Seconds)
+
+https://github.com/Charukhesh/BankShield/raw/main/video.mp4
+
+<div align="center">
+  <video src="https://raw.githubusercontent.com/Charukhesh/BankShield/main/video.mp4" controls="controls" width="100%" style="max-height: 480px; border-radius: 8px;"></video>
+  <p><em>BankShield in action: Multi-agent adversarial red-teaming, transaction evasion, and real-time policy remediation.</em></p>
+  <p><small>If the player does not load automatically in your viewer, <a href="video.mp4">watch or download <code>video.mp4</code> directly</a>.</small></p>
+</div>
+
+---
+
 ## The Real-World Dilemma
 
 Financial institutions spend over **$206 billion annually** on financial crime compliance (LexisNexis, 2023). Despite this investment:
@@ -193,6 +205,12 @@ OPENROUTER_API_KEY=your_openrouter_api_key_here
 6. **Federal Reserve Board & OCC (2011):** Supervisory Guidance on Model Risk Management, Federal Reserve SR Letter 11-7 / OCC Bulletin 2011-12.
 7. **IBM Research (2023):** Realistic Synthetic Financial Transactions for Anti-Money Laundering Models, NeurIPS Benchmark Suite.
 8. **Dennis Heijmans et al. (2026):** Towards Adversarially Robust Multigraph Neural Networks for Financial Crime Analysis, arXiv:2610.16000.
+
+---
+
+## Acknowledgements
+
+Special thanks to the open-source **[brag](https://github.com/latent-spaces/brag)** repository by Latent Spaces for the automated project launch video generation workflow.
 
 ---
 
