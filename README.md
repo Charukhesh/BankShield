@@ -13,7 +13,6 @@
 <div align="center">
   <img src="demo.gif" alt="BankShield Demo Walkthrough" width="100%" style="border-radius: 8px;" />
   <p><em>BankShield in action: Multi-agent adversarial red-teaming, transaction evasion, and real-time policy remediation.</em></p>
-  <p><small>Full 1080p resolution with audio: <a href="video.mp4">watch or download <code>video.mp4</code> directly</a>.</small></p>
 </div>
 
 ## The Real-World Dilemma
