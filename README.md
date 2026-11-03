@@ -10,14 +10,12 @@
 
 ---
 
-## Demo Walkthrough (20 Seconds)
-
-https://github.com/Charukhesh/BankShield/raw/main/video.mp4
+## Demo Walkthrough
 
 <div align="center">
-  <video src="https://raw.githubusercontent.com/Charukhesh/BankShield/main/video.mp4" controls="controls" width="100%" style="max-height: 480px; border-radius: 8px;"></video>
+  <img src="demo.gif" alt="BankShield Demo Walkthrough" width="100%" style="border-radius: 8px;" />
   <p><em>BankShield in action: Multi-agent adversarial red-teaming, transaction evasion, and real-time policy remediation.</em></p>
-  <p><small>If the player does not load automatically in your viewer, <a href="video.mp4">watch or download <code>video.mp4</code> directly</a>.</small></p>
+  <p><small>Full 1080p resolution with audio: <a href="video.mp4">watch or download <code>video.mp4</code> directly</a>.</small></p>
 </div>
 
 ---
