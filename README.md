@@ -8,8 +8,6 @@
 > **Adversarial stress-testing environment for Anti-Money Laundering (AML) transaction monitoring systems.**  
 > BankShield deploys concurrent generative AI red-teams to discover surveillance blind spots before illicit actors exploit them, paired with deterministic double-entry accounting guardrails ($Assets = Liabilities + Equity$) and an automated compliance auditor.
 
----
-
 ## Demo Walkthrough
 
 <div align="center">
@@ -17,8 +15,6 @@
   <p><em>BankShield in action: Multi-agent adversarial red-teaming, transaction evasion, and real-time policy remediation.</em></p>
   <p><small>Full 1080p resolution with audio: <a href="video.mp4">watch or download <code>video.mp4</code> directly</a>.</small></p>
 </div>
-
----
 
 ## The Real-World Dilemma
 
@@ -28,8 +24,6 @@ Financial institutions spend over **$206 billion annually** on financial crime c
 * **Testing is historically reactive:** Banks typically discover monitoring blind spots only after a law enforcement subpoena or an audit penalty.
 
 BankShield applies the principles of automated software red-teaming to financial compliance: continuously stress-testing monitoring rules with multi-agent adversaries while enforcing unbreakable accounting laws.
-
----
 
 ## System Architecture
 
@@ -76,8 +70,6 @@ BankShield strictly separates probabilistic exploration from mathematical verifi
 
 > **Why LLMs never execute math:** Large language models hallucinate arithmetic sums and drift nondeterministically. BankShield uses LLMs solely for generating creative transaction hypotheses. Ledger balance updates, threshold checks, and invariant proofs are executed exclusively by deterministic Python code.
 
----
-
 ## Interactive Decision Visualizer (`visualizer.html`)
 
 BankShield generates a standalone, offline, single-file browser visualizer (`visualizer.html`) equipped with an interactive policy simulator:
@@ -101,8 +93,6 @@ BankShield generates a standalone, offline, single-file browser visualizer (`vis
 ```
 
 Open `visualizer.html` directly in any web browser without running local web servers or installing external packages.
-
----
 
 ## Quickstart Guide
 
@@ -154,8 +144,6 @@ python visualizer.py
 ```
 * Generates **`visualizer.html`**. Open it in any browser (`start visualizer.html` on Windows or `open visualizer.html` on macOS/Linux).
 
----
-
 ## Optional API Configuration
 
 BankShield automatically falls back to deterministic procedural generators if no API keys are provided. To activate live language models via Google Gemini or OpenRouter, add your key to a local `.env` file (which is git-ignored):
@@ -165,8 +153,6 @@ GEMINI_API_KEY=your_gemini_api_key_here
 # or
 OPENROUTER_API_KEY=your_openrouter_api_key_here
 ```
-
----
 
 ## Repository Map
 
@@ -181,8 +167,6 @@ OPENROUTER_API_KEY=your_openrouter_api_key_here
 | **[`visualizer.py`](file:///c:/Users/charu/Downloads/Projects/BankShield/visualizer.py)** | Generator | Builds the standalone operations visualizer. |
 | **[`visualizer.html`](file:///c:/Users/charu/Downloads/Projects/BankShield/visualizer.html)** | **Final Deliverable B** | Standalone browser visualizer with animated SVG topology graph, timeline controls, and counterfactual policy toggles. |
 
----
-
 ## The 5 Systemic Loopholes Cataloged
 
 1. **Fixed 48-Hour Lookback Window Reset (`RULE_STRUC_03`):** Spacing two $8,000 transfers 50 hours apart resets the rolling accumulator, allowing $16,000 to move unflagged.
@@ -190,8 +174,6 @@ OPENROUTER_API_KEY=your_openrouter_api_key_here
 3. **Velocity Burst Segmentation (`RULE_VEL_04`):** Spacing transfers at 2-hour-and-10-minute intervals resets the 2-hour burst counter.
 4. **Sub-Threshold Micro-Structuring:** Transferring amounts under $2,000 (such as $1,950) bypasses structuring rules that only scan the $2,000 to $9,999 range.
 5. **Graph Topology Disconnection:** Lack of 2-hop transitive graph traversal blinds engines to distributed funnel networks.
-
----
 
 ## Statutory and Regulatory References
 
@@ -204,13 +186,9 @@ OPENROUTER_API_KEY=your_openrouter_api_key_here
 7. **IBM Research (2023):** Realistic Synthetic Financial Transactions for Anti-Money Laundering Models, NeurIPS Benchmark Suite.
 8. **Dennis Heijmans et al. (2026):** Towards Adversarially Robust Multigraph Neural Networks for Financial Crime Analysis, arXiv:2610.16000.
 
----
-
 ## Acknowledgements
 
 Special thanks to the open-source **[brag](https://github.com/latent-spaces/brag)** repository by Latent Spaces for the automated project launch video generation workflow.
-
----
 
 ## License
 
