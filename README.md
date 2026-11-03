@@ -8,7 +8,7 @@
 > **Adversarial stress-testing environment for Anti-Money Laundering (AML) transaction monitoring systems.**  
 > BankShield deploys concurrent generative AI red-teams to discover surveillance blind spots before illicit actors exploit them, paired with deterministic double-entry accounting guardrails ($Assets = Liabilities + Equity$) and an automated compliance auditor.
 
-## Demo Walkthrough
+## Demo Walkthrough (Credits: **[brag](https://github.com/latent-spaces/brag)**)
 
 <div align="center">
   <img src="demo.gif" alt="BankShield Demo Walkthrough" width="100%" style="border-radius: 8px;" />
